@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 const gameSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
+  userId: { type: String, required: true , undefined: true},
   score: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
   kdRatio: { type: Number, default: 0 },
