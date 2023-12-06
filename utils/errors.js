@@ -29,6 +29,16 @@ class UserNotFoundError extends Error {
       this.statusCode = 400; 
     }
   }
-  
+
+  class HttpException extends Error {
+    constructor(status, message, data) {
+        super(message);
+        this.status = status;
+        this.message = message;
+        this.data = data;
+        this.statusCode = status; 
+    }
+}
+
 // Corrected export statement
-module.exports = { DuplicateKeyError, UserAlreadyExistsError, UserNotFoundError, BadRequestError };
+module.exports = { DuplicateKeyError, UserAlreadyExistsError, UserNotFoundError, BadRequestError , HttpException };

@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../middleware/auth.middleware');
 const tokenMiddleware = require('../middleware/tokenMiddleware');
 const gameController = require('../controllers/gameController');
 const validationMiddleware = require('../middleware/validationMiddleware');

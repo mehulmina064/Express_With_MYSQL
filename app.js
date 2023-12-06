@@ -1,18 +1,33 @@
 // app.js
-require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
 const mongoose = require('mongoose');
 const amqp = require('amqplib');
+const cors = require("cors");
 const authRoutes = require('./routes/authRoutes');
 const gameRoutes = require('./routes/gameRoutes');
+const userRouter = require('./routes/user.route');
 const errorMiddleware = require('./middleware/errorMiddleware');
 const validationMiddleware = require('./middleware/validationMiddleware');
-const authMiddleware = require('./middleware/authMiddleware');
+const authMiddleware = require('./middleware/auth.middleware');
+const { HttpException } = require('./utils/errors');
 
+
+// Init environment
+require('dotenv').config();
+// Init express
 const app = express();
+
+// parse requests of content-type: application/json
+// parses incoming requests with JSON payloads
+app.use(express.json());
+// enabling cors for all requests by using cors middleware
+app.use(cors());
+// Enable pre-flight
+app.options("*", cors());
+
 
 app.use(bodyParser.json());
 
@@ -63,15 +78,22 @@ const swaggerOptions = {
   
 
 // Routes
-app.use('/auth', validationMiddleware,authRoutes);
-app.use('/game', authMiddleware,validationMiddleware,gameRoutes);
+app.use(`/api/v1/users`,validationMiddleware, userRouter);
+app.use('/api/v1/auth', validationMiddleware,authRoutes);
+app.use('/api/v1/game', authMiddleware,validationMiddleware,gameRoutes);
+
+// 404 error
+app.all('*', (req, res, next) => {
+    const err = new HttpException(404, 'Endpoint Not Found');
+    next(err);
+});
 
 // Error handling middleware
 app.use(errorMiddleware);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`); 
-});
+const port = Number(process.env.PORT || 3000); 
+// starting the server
+app.listen(port, () =>
+    console.log(`🚀 Server running on port ${port}!`));
 
 module.exports = app;
