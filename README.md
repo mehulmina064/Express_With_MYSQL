@@ -13,6 +13,10 @@
 3. Start the server: `npm start`
 
 
+## POSTMAN DOCUMENTATION LINK
+
+https://documenter.getpostman.com/view/23544751/2s9YkgBjWQ
+
 
 ## For sql Set up
 

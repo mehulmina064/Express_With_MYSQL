@@ -5,6 +5,7 @@ const { publishEvent } = require('../eventPublisher');
 const { DuplicateKeyError,UserAlreadyExistsError,UserNotFoundError,BadRequestError,HttpException, ValidationError, UnauthorizedError } = require('../utils/errors');
 const {checkValidation,hashPassword,comparePasswords} = require('../utils/common.utils');
 const {auth,generateJwtToken} = require('../middleware/auth.middleware');
+const { addGameDataDetailsToUser } = require('../services/gameService');
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ class UserController {
         });
 
         res.status(200).json({data: userList, message: "User List details!"});
+        
 
     } catch (error) {
         console.error('Error during getAllUsers:', error);
@@ -38,8 +40,9 @@ class UserController {
         if (!user) {
             throw new HttpException(404, 'User not found');
         }
-
         const { password, ...userWithoutPassword } = user;
+        //add game details to user
+        await addGameDataDetailsToUser(userWithoutPassword);
         res.status(200).json({data: userWithoutPassword, message: "User details!"});
     } catch (error) {
         console.error('Error during getUserById:', error);
@@ -55,7 +58,8 @@ class UserController {
         }
 
         const { password, ...userWithoutPassword } = user;
-
+        //add game details to user
+        await addGameDataDetailsToUser(userWithoutPassword);
         res.status(200).json({data: userWithoutPassword, message: "User details!"});
 
     } catch (error) {
@@ -72,6 +76,8 @@ class UserController {
             }
 
             const { password, ...userWithoutPassword } = user;
+            //add game details to user
+            await addGameDataDetailsToUser(userWithoutPassword);
             res.status(200).json({data: userWithoutPassword, message: "User details!"});
 
     } catch (error) {

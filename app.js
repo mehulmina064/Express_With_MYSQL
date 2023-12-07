@@ -56,25 +56,25 @@ let channel;
   })();
 
 // Swagger setup manually
-// const swaggerOptions = {
-//     definition: {
-//       openapi: '3.0.0',
-//       info: {
-//         title: 'Your API Title',
-//         version: '1.0.0',
-//         description: 'Description of your API',
-//       },
-//     },
-//     apis: ['./routes/*.js'],
-//   };
+const swaggerOptions = {
+    definition: {
+      openapi: '3.0.0',
+      info: {
+        title: 'Your API Title',
+        version: '1.0.0',
+        description: 'Description of your API',
+      },
+    },
+    apis: ['./routes/*.js'],
+  };
 
-//manually configure
-//   const swaggerSpec = swaggerJSDoc(swaggerOptions);
-//   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec)); 
+// manually configure
+  const swaggerSpec = swaggerJSDoc(swaggerOptions);
+  app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec)); 
   
   //automated with less details
-  const swaggerDocument = require('./swagger_output.json');
-  app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+//   const swaggerDocument = require('./swagger_output.json');
+//   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
 
 // Use the response handler middleware
@@ -82,7 +82,7 @@ app.use(responseHandler);
 
 // Routes
 app.use(`/api/v1/users`, userRouter);
-app.use('/api/v1/game',gameRoutes);
+app.use('/api/v1/gameData',gameRoutes);
 
 // Error handling middleware
 app.use(errorMiddleware);

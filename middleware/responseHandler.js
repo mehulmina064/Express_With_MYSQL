@@ -10,6 +10,7 @@ const responseHandler = (req, res, next) => {
   
     res.defaultSend = res.send;
   
+
     res.send = (data, message = 'Request successful') => {
        data= typeof data === 'string' ? JSON.parse(data) : data
        let formattedResponse;

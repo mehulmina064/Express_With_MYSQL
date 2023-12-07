@@ -165,12 +165,26 @@ const Role = require('../utils/userRoles.utils');
 
 const router = express.Router();
 
-router.post('/create-game-entry', auth(Role.Admin), createGameEntrySchema, awaitHandlerFactory(gameController.createGameEntry));
+//My profile Game Data
+router.post('/my-profile', auth(), createGameEntrySchema, awaitHandlerFactory(gameController.createGameEntry));
 
-router.get('/get-game-data', auth(), awaitHandlerFactory(gameController.getGameData));
+router.get('/my-profile', auth(), awaitHandlerFactory(gameController.getGameData));
 
-router.put('/update-game-data', auth(Role.Admin), updateGameEntrySchema, awaitHandlerFactory(gameController.updateGameData));
+router.patch('/my-profile', auth(), updateGameEntrySchema, awaitHandlerFactory(gameController.updateGameData));
 
-router.delete('/delete-game-entry', auth(), awaitHandlerFactory(gameController.deleteGameEntry));
+router.delete('/my-profile', auth(), awaitHandlerFactory(gameController.deleteGameEntry));
 
+//Other User Game Data
+
+router.get('/user', auth(Role.SuperUser), awaitHandlerFactory(gameController.getGameDataWithQuery)); //get all
+
+router.post('/user/:id', auth(Role.SuperUser), createGameEntrySchema, awaitHandlerFactory(gameController.createUserGameEntry));
+
+router.get('/user/:id', auth(Role.SuperUser), awaitHandlerFactory(gameController.getUserGameData));
+
+router.patch('/user/:id', auth(Role.SuperUser), updateGameEntrySchema, awaitHandlerFactory(gameController.updateUserGameData));
+
+router.delete('/user/:id', auth(Role.SuperUser), awaitHandlerFactory(gameController.deleteUserGameEntry));
+
+//Other User Game Data
 module.exports = router;

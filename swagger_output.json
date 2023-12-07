@@ -206,7 +206,7 @@
         }
       }
     },
-    "/api/v1/game/create-game-entry": {
+    "/api/v1/gameData/my-profile": {
       "post": {
         "description": "",
         "produces": [
@@ -224,9 +224,7 @@
             "description": ""
           }
         }
-      }
-    },
-    "/api/v1/game/get-game-data": {
+      },
       "get": {
         "description": "",
         "produces": [
@@ -244,9 +242,7 @@
             "description": ""
           }
         }
-      }
-    },
-    "/api/v1/game/update-game-data": {
+      },
       "put": {
         "description": "",
         "produces": [
@@ -264,9 +260,7 @@
             "description": ""
           }
         }
-      }
-    },
-    "/api/v1/game/delete-game-entry": {
+      },
       "delete": {
         "description": "",
         "produces": [
