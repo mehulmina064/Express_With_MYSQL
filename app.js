@@ -6,14 +6,11 @@ const swaggerUI = require('swagger-ui-express');
 const mongoose = require('mongoose');
 const amqp = require('amqplib');
 const cors = require("cors");
-const authRoutes = require('./routes/authRoutes');
 const gameRoutes = require('./routes/gameRoutes');
 const userRouter = require('./routes/user.route');
 const errorMiddleware = require('./middleware/errorMiddleware');
-const validationMiddleware = require('./middleware/validationMiddleware');
-const authMiddleware = require('./middleware/auth.middleware');
 const { HttpException } = require('./utils/errors');
-
+const responseHandler = require('./middleware/responseHandler');
 
 // Init environment
 require('dotenv').config();
@@ -74,13 +71,15 @@ const swaggerOptions = {
   const swaggerSpec = swaggerJSDoc(swaggerOptions);
   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
-  
-  
+// Use the response handler middleware
+app.use(responseHandler);
 
 // Routes
-app.use(`/api/v1/users`,validationMiddleware, userRouter);
-app.use('/api/v1/auth', validationMiddleware,authRoutes);
-app.use('/api/v1/game', authMiddleware,validationMiddleware,gameRoutes);
+app.use(`/api/v1/users`, userRouter);
+app.use('/api/v1/game',gameRoutes);
+
+// Error handling middleware
+app.use(errorMiddleware);
 
 // 404 error
 app.all('*', (req, res, next) => {
@@ -88,8 +87,6 @@ app.all('*', (req, res, next) => {
     next(err);
 });
 
-// Error handling middleware
-app.use(errorMiddleware);
 
 const port = Number(process.env.PORT || 3000); 
 // starting the server

@@ -16,7 +16,7 @@ const auth = (...roles) => {
             }
 
             const token = authHeader.replace(bearer, '');
-            const secretKey = process.env.SECRET_JWT || "";
+            const secretKey = process.env.JWT_SECRET || "";
 
             // Verify Token
             const decoded = jwt.verify(token, secretKey);
@@ -47,4 +47,12 @@ const auth = (...roles) => {
     }
 }
 
-module.exports = auth;
+const generateJwtToken = async (user)=>{
+    const secretKey = process.env.SECRET_JWT || "12345";
+    return await  jwt.sign({ user_id: user.id.toString() }, secretKey, {
+        expiresIn: '24h'
+    });
+
+}
+
+module.exports = {auth,generateJwtToken};

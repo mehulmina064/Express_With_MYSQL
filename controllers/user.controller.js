@@ -1,11 +1,10 @@
 const UserModel = require('../models/user.model');
-const { validationResult } = require('express-validator');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const { publishEvent } = require('../eventPublisher');
-const { DuplicateKeyError,UserAlreadyExistsError,UserNotFoundError,BadRequestError,HttpException } = require('../utils/errors');
-
+const { DuplicateKeyError,UserAlreadyExistsError,UserNotFoundError,BadRequestError,HttpException, ValidationError } = require('../utils/errors');
+const {checkValidation,hashPassword,comparePasswords} = require('../utils/common.utils');
+const {auth,generateJwtToken} = require('../middleware/auth.middleware');
 
 dotenv.config();
 
@@ -41,7 +40,7 @@ class UserController {
 
         const { password, ...userWithoutPassword } = user;
 
-        res.send(userWithoutPassword);
+        res.send(userWithoutPassword,"User details");
     } catch (error) {
         console.error('Error during getUserById:', error);
         next(error);
@@ -77,9 +76,9 @@ class UserController {
 
     createUser = async (req, res, next) => {
         try{
-        this.checkValidation(req);
+        checkValidation(req);
 
-        await this.hashPassword(req);
+        await hashPassword(req);
         
         const existingUserByEmail = await UserModel.findOne({ email: req.body.email });
         const existingUserByUsername = await UserModel.findOne({ username: req.body.username });
@@ -102,9 +101,10 @@ class UserController {
         //get user details to publish event 
         let user = await UserModel.findOne({ username: req.body.username });
 
-        await publishEvent('user.registered', { userId: user.id, username:user.username, email:user.email });
+        const {...userWithoutPassword } = user;
 
-        res.status(201).send('User was created!');
+        await publishEvent('user.registered', { userId: user.id, username:user.username, email:user.email });
+        res.send({...userWithoutPassword},"User was created!" );
 
     } catch (error) {
         console.error('Error during createUser:', error);
@@ -114,9 +114,9 @@ class UserController {
 
     updateUser = async (req, res, next) => {
         try{
-        this.checkValidation(req);
+        checkValidation(req);
 
-        await this.hashPassword(req);
+        await hashPassword(req);
 
         const { confirm_password, ...restOfUpdates } = req.body;
 
@@ -155,7 +155,7 @@ class UserController {
 
     userLogin = async (req, res, next) => {
         try{
-        this.checkValidation(req);
+        await checkValidation(req);
 
         const { email, password: pass } = req.body;
 
@@ -165,40 +165,36 @@ class UserController {
             throw new HttpException(401, 'Unable to login!');
         }
 
-        const isMatch = await bcrypt.compare(pass, user.password);
+        const isMatch = await comparePasswords(pass, user);
 
         if (!isMatch) {
             throw new HttpException(401, 'Incorrect password!');
         }
 
         // user matched!
-        const secretKey = process.env.SECRET_JWT || "";
-        const token = jwt.sign({ user_id: user.id.toString() }, secretKey, {
-            expiresIn: '24h'
-        });
+        const token = await generateJwtToken(user);
 
         const { password, ...userWithoutPassword } = user;
 
-        res.send({ ...userWithoutPassword, token });
+        res.status(200).json({...userWithoutPassword, token, message: 'login successful'});
+
     } catch (error) {
-        console.error('Error during userLogin:', error);
-        next(error);
+        console.error('Error during userLogin:');
+        res.errorOccurred=true;
+        return next(error); 
       }
     };
 
-    checkValidation = (req) => {
-        const errors = validationResult(req)
-        if (!errors.isEmpty()) {
-            throw new HttpException(400, 'Validation faild', errors);
-        }
-    }
-
-    // hash password if it exists
-    hashPassword = async (req) => {
-        if (req.body.password) {
-            req.body.password = await bcrypt.hash(req.body.password, 8);
-        }
-    }
+    //testing error
+testError = async (req, res, next) => {
+    try {
+      // Your code that may throw an error
+      throw new UserAlreadyExistsError('This is a test error');
+    } catch (error) {
+      // Pass the error to the next middleware
+      next(error);
+    } 
+  };
 }
 
 

@@ -1,13 +1,14 @@
 const express = require('express');
-const { body } = require('express-validator');
-const authMiddleware = require('../middleware/auth.middleware');
-const tokenMiddleware = require('../middleware/tokenMiddleware');
 const gameController = require('../controllers/gameController');
-const validationMiddleware = require('../middleware/validationMiddleware');
+const { createGameEntrySchema,updateGameEntrySchema } = require('../middleware/validators/gameValidator.middleware');
+const {auth} = require('../middleware/auth.middleware');
+const awaitHandlerFactory = require('../middleware/awaitHandlerFactory.middleware');
+const Role = require('../utils/userRoles.utils');
+
 
 /**
  * @swagger
- * /game/create-game-entry:
+ * /api/v1/game/create-game-entry:
  *   post:
  *     summary: Create a new game entry
  *     description: Endpoint for creating a new game entry.
@@ -59,24 +60,9 @@ const validationMiddleware = require('../middleware/validationMiddleware');
 
 const router = express.Router();
 
-router.post(
-  '/create-game-entry',
-  tokenMiddleware.verifyToken,
-  [
-    body('score', 'Score is required').isNumeric(),
-    body('level', 'Level is required').isNumeric(),
-    body('kdRatio', 'KD Ratio is required').isNumeric(),
-    body('totalMatchesPlayed', 'Total Matches Played is required').isNumeric(),
-    body('headshotPercentage', 'Headshot Percentage is required').isNumeric(),
-    body('wins', 'Wins is required').isNumeric(),
-    body('totalKills', 'Total Kills is required').isNumeric(),
-    validationMiddleware,
-  ],
-  gameController.createGameEntry
-);
-
-router.get('/get-game-data', tokenMiddleware.verifyToken, gameController.getGameData);
-router.put('/update-game-data', tokenMiddleware.verifyToken, gameController.updateGameData);
-router.delete('/delete-game-entry', tokenMiddleware.verifyToken, gameController.deleteGameEntry);
+router.post('/create-game-entry',auth(Role.Admin),createGameEntrySchema,awaitHandlerFactory(gameController.createGameEntry));
+router.get('/get-game-data', auth(), awaitHandlerFactory(gameController.getGameData));
+router.put('/update-game-data', auth(Role.Admin),updateGameEntrySchema, awaitHandlerFactory(gameController.updateGameData));
+router.delete('/delete-game-entry', auth(), awaitHandlerFactory(gameController.deleteGameEntry));
 
 module.exports = router;
