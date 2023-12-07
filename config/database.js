@@ -10,6 +10,7 @@ class DBConnection {
             password: process.env.MYSQL_DB_PASSWORD,
             database: process.env.MYSQL_DB_NAME_MAIN,
             multipleStatements: true,
+            namedPlaceholders: false,
         });
 
         this.checkConnection();

@@ -2,7 +2,7 @@ const UserModel = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const { publishEvent } = require('../eventPublisher');
-const { DuplicateKeyError,UserAlreadyExistsError,UserNotFoundError,BadRequestError,HttpException, ValidationError } = require('../utils/errors');
+const { DuplicateKeyError,UserAlreadyExistsError,UserNotFoundError,BadRequestError,HttpException, ValidationError, UnauthorizedError } = require('../utils/errors');
 const {checkValidation,hashPassword,comparePasswords} = require('../utils/common.utils');
 const {auth,generateJwtToken} = require('../middleware/auth.middleware');
 
@@ -24,7 +24,8 @@ class UserController {
             return userWithoutPassword;
         });
 
-        res.send(userList);
+        res.status(200).json({data: userList, message: "User List details!"});
+
     } catch (error) {
         console.error('Error during getAllUsers:', error);
         next(error);
@@ -39,8 +40,7 @@ class UserController {
         }
 
         const { password, ...userWithoutPassword } = user;
-
-        res.send(userWithoutPassword,"User details");
+        res.status(200).json({data: userWithoutPassword, message: "User details!"});
     } catch (error) {
         console.error('Error during getUserById:', error);
         next(error);
@@ -56,7 +56,8 @@ class UserController {
 
         const { password, ...userWithoutPassword } = user;
 
-        res.send(userWithoutPassword);
+        res.status(200).json({data: userWithoutPassword, message: "User details!"});
+
     } catch (error) {
         console.error('Error during getUserByuserName:', error);
         next(error);
@@ -65,9 +66,14 @@ class UserController {
 
     getCurrentUser = async (req, res, next) => {
         try{
-        const { password, ...userWithoutPassword } = req.currentUser;
+            const user = await UserModel.findOne({ id: req.currentUser.id });
+            if (!user) {
+                throw new HttpException(404, 'User not found');
+            }
 
-        res.send(userWithoutPassword);
+            const { password, ...userWithoutPassword } = user;
+            res.status(200).json({data: userWithoutPassword, message: "User details!"});
+
     } catch (error) {
         console.error('Error during getCurrentUser:', error);
         next(error);
@@ -104,7 +110,8 @@ class UserController {
         const {...userWithoutPassword } = user;
 
         await publishEvent('user.registered', { userId: user.id, username:user.username, email:user.email });
-        res.send({...userWithoutPassword},"User was created!" );
+        res.status(200).json({data: userWithoutPassword, message: "User was created!"});
+
 
     } catch (error) {
         console.error('Error during createUser:', error);
@@ -119,10 +126,52 @@ class UserController {
         await hashPassword(req);
 
         const { confirm_password, ...restOfUpdates } = req.body;
+        if(restOfUpdates.role){
+            //we need to check if have this permission or not
+            const user = await UserModel.findOne({id: req.currentUser.id})
+              if(user.role!='SuperUser'){
+                throw new UnauthorizedError('You not have permission to change roles.');
+              }
+            }
 
         // do the update query and get the result
         // it can be partial edit
         const result = await UserModel.update(restOfUpdates, req.params.id);
+
+        if (!result) {
+            throw new HttpException(404, 'Something went wrong'); 
+        }
+
+        const { affectedRows, changedRows, info } = result;
+
+        const message = !affectedRows ? 'User not found' :
+            affectedRows && changedRows ? 'User updated successfully' : 'Updated faild';
+
+        res.status(200).json({data: info, message: message});
+
+    } catch (error) {
+        console.error('Error during updateUser:', error);
+        next(error);
+      }
+    };
+
+    updateProfile = async (req, res, next) => {
+        try{
+        checkValidation(req);
+        await hashPassword(req);
+
+        const { confirm_password, ...restOfUpdates } = req.body;
+        if(restOfUpdates.role){
+        //we need to check if have this permission or not
+        const user = await UserModel.findOne({id: req.currentUser.id})
+          if(user.role!='SuperUser'){
+            throw new UnauthorizedError('You not have permission to change roles.');
+          }
+        }
+
+        // do the update query and get the result
+        // it can be partial edit
+        const result = await UserModel.update(restOfUpdates, req.currentUser.id);
 
         if (!result) {
             throw new HttpException(404, 'Something went wrong');
@@ -133,7 +182,8 @@ class UserController {
         const message = !affectedRows ? 'User not found' :
             affectedRows && changedRows ? 'User updated successfully' : 'Updated faild';
 
-        res.send({ message, info });
+        res.status(200).json({data: info, message: message});
+
     } catch (error) {
         console.error('Error during updateUser:', error);
         next(error);
@@ -146,7 +196,8 @@ class UserController {
         if (!result) {
             throw new HttpException(404, 'User not found');
         }
-        res.send('User has been deleted');
+        res.status(200).json({data: result, message: 'User has been deleted'});
+
     } catch (error) {
         console.error('Error during deleteUser:', error);
         next(error);
@@ -172,11 +223,11 @@ class UserController {
         }
 
         // user matched!
-        const token = await generateJwtToken(user);
+        const token = await generateJwtToken(user); 
 
         const { password, ...userWithoutPassword } = user;
 
-        res.status(200).json({...userWithoutPassword, token, message: 'login successful'});
+        res.status(200).json({data: {...userWithoutPassword, token}, message: 'login successful'});
 
     } catch (error) {
         console.error('Error during userLogin:');

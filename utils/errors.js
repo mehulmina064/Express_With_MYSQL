@@ -47,7 +47,8 @@ class UserNotFoundError extends Error {
         super(message);
         this.name = 'HttpException';
         this.status = status;
-        this.message = [message];
+        this.message = message;
+        this.errors=[message];
         this.data = data;
         this.statusCode = status; 
         Object.setPrototypeOf(this, ValidationError.prototype);
@@ -65,5 +66,16 @@ class ValidationError extends Error {
   }
 }
 
+class UnauthorizedError extends Error {
+  constructor(message) {
+    super();
+    this.name = 'UnauthorizedError';
+    this.message = message;
+    this.statusCode = 401; 
+    this.errors=[message];
+    Object.setPrototypeOf(this, ValidationError.prototype);
+}
+}
+
 // Corrected export statement
-module.exports = { ValidationError,DuplicateKeyError, UserAlreadyExistsError, UserNotFoundError, BadRequestError , HttpException };
+module.exports = { UnauthorizedError,ValidationError,DuplicateKeyError, UserAlreadyExistsError, UserNotFoundError, BadRequestError , HttpException };

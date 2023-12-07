@@ -22,6 +22,7 @@ class UserModel {
         throw error;
       }
     }
+    
 
     findOne = async (params) => {
         try{
@@ -66,7 +67,7 @@ class UserModel {
         try{
         const { columnSet, values } = multipleColumnSet(params)
 
-        const sql = `UPDATE user SET ${columnSet} WHERE id = ?`;
+        const sql = `UPDATE ${this.tableName} SET ${columnSet} WHERE id = ?`;
 
         const result = await query(sql, [...values, id]);
 

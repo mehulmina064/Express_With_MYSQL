@@ -10,9 +10,10 @@ const { createUserSchema, updateUserSchema, validateLogin } = require('../middle
 router.get('/', auth(), awaitHandlerFactory(userController.getAllUsers)); // localhost:3000/api/v1/users
 router.get('/id/:id', auth(), awaitHandlerFactory(userController.getUserById)); // localhost:3000/api/v1/users/id/1
 router.get('/username/:username', auth(), awaitHandlerFactory(userController.getUserByuserName)); // localhost:3000/api/v1/users/usersname/julia
-router.get('/profile', auth(), awaitHandlerFactory(userController.getCurrentUser)); // localhost:3000/api/v1/users/whoami
-router.patch('/id/:id', auth(Role.Admin), updateUserSchema, awaitHandlerFactory(userController.updateUser)); // localhost:3000/api/v1/users/id/1 , using patch for partial update
-router.delete('/id/:id', auth(Role.Admin), awaitHandlerFactory(userController.deleteUser)); // localhost:3000/api/v1/users/id/1
+router.get('/profile', auth(),updateUserSchema, awaitHandlerFactory(userController.getCurrentUser)); // localhost:3000/api/v1/users/profile
+router.patch('/profile', auth(), updateUserSchema, awaitHandlerFactory(userController.updateProfile)); // localhost:3000/api/v1/users/id/1 , using patch for partial update
+router.patch('/id/:id', auth(Role.SuperUser), updateUserSchema, awaitHandlerFactory(userController.updateUser)); // localhost:3000/api/v1/users/id/1 , using patch for partial update
+router.delete('/id/:id', auth(Role.SuperUser), awaitHandlerFactory(userController.deleteUser)); // localhost:3000/api/v1/users/id/1
 
 //register user
 router.post('/', createUserSchema, awaitHandlerFactory(userController.createUser)); // localhost:3000/api/v1/users

@@ -1,4 +1,4 @@
-const {HttpException, DuplicateKeyError,UserAlreadyExistsError,UserNotFoundError,BadRequestError } = require('../utils/errors');
+const {HttpException, DuplicateKeyError,UserAlreadyExistsError,UserNotFoundError,BadRequestError, UnauthorizedError } = require('../utils/errors');
 
 const UserModel = require('../models/user.model');
 const jwt = require('jsonwebtoken');
@@ -33,7 +33,7 @@ const auth = (...roles) => {
             // if the user role don't have the permission to do this action.
             // the user will get this error
             if (!ownerAuthorized && roles.length && !roles.includes(user.role)) {
-                throw new HttpException(401, 'Unauthorized');
+                throw new HttpException(401, 'You not have permission to do this action.');
             }
 
             // if the user has permissions
@@ -42,13 +42,14 @@ const auth = (...roles) => {
 
         } catch (e) {
             e.status = 401;
+            next(new UnauthorizedError(e.message));
             next(e);
         }
     }
 }
 
 const generateJwtToken = async (user)=>{
-    const secretKey = process.env.SECRET_JWT || "12345";
+    const secretKey = process.env.JWT_SECRET || "12345";
     return await  jwt.sign({ user_id: user.id.toString() }, secretKey, {
         expiresIn: '24h'
     });

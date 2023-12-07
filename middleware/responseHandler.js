@@ -12,18 +12,16 @@ const responseHandler = (req, res, next) => {
   
     res.send = (data, message = 'Request successful') => {
        data= typeof data === 'string' ? JSON.parse(data) : data
-       let formattedResponse = {
-        type: 'success',
-        message: message,
-        data: data,
-      };
+       let formattedResponse;
       // Check if the data is an error object
-      if (data instanceof Error || data.errors) {
+      if (data instanceof Error || data.errors || data.type == 'error') {
         // If it's an error, send it to the error middleware
-        console.log('sending  middleware error:');
+        console.log('sending  middleware error:',data); 
        formattedResponse = data;
       }
       else{
+       message=data.message?data.message:message
+       data=data.data?data.data:data;
        formattedResponse = {
         type: 'success',
         message: message,
