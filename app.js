@@ -55,21 +55,27 @@ let channel;
     }
   })();
 
-// Swagger setup
-const swaggerOptions = {
-    definition: {
-      openapi: '3.0.0',
-      info: {
-        title: 'Your API Title',
-        version: '1.0.0',
-        description: 'Description of your API',
-      },
-    },
-    apis: ['./routes/*.js'],
-  };
+// Swagger setup manually
+// const swaggerOptions = {
+//     definition: {
+//       openapi: '3.0.0',
+//       info: {
+//         title: 'Your API Title',
+//         version: '1.0.0',
+//         description: 'Description of your API',
+//       },
+//     },
+//     apis: ['./routes/*.js'],
+//   };
+
+//manually configure
+//   const swaggerSpec = swaggerJSDoc(swaggerOptions);
+//   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec)); 
   
-  const swaggerSpec = swaggerJSDoc(swaggerOptions);
-  app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+  //automated with less details
+  const swaggerDocument = require('./swagger_output.json');
+  app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+
 
 // Use the response handler middleware
 app.use(responseHandler);
