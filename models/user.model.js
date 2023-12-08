@@ -13,7 +13,7 @@ class UserModel {
             return await query(sql); 
         }
 
-        const { columnSet, values } = multipleColumnSet(params)
+        const { columnSet, values } = multipleColumnSet(params) 
         sql += ` WHERE ${columnSet}`;
 
         return await query(sql, [...values]);
