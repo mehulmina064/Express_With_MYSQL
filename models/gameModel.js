@@ -12,7 +12,9 @@ const gameSchema = new mongoose.Schema({
   totalKills: { type: Number, default: 0 },
 });
 
+//game data schema
 const Game = mongoose.model('Game', gameSchema);
+
 
 exports.createGameEntry = async (userId, gameData) => {
   return Game.create({ userId, ...gameData });
